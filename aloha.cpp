@@ -3,6 +3,11 @@
 void aloha::start(int C, char **V){
     int mode = check_params(C, V);
     if(mode == 1){
+        this->Pmode = 0;
+        this->mainCycle();
+    }
+    if(mode == 2){
+        this->Pmode = 1;
         this->mainCycle();
     }
 }
@@ -32,6 +37,9 @@ int aloha::check_params(int C, char **V){
         if(v1 == "-s"){
             return 1;
         }
+        if(v1 == "-m"){
+            return 2;
+        }
     }
     cout<<"unknown params!"<<endl;
     return 0;
@@ -43,18 +51,25 @@ void aloha::mainCycle(){
     this->initParams();
     abonent a;
     a.queue = 0;
+    if(this->Pmode == 0){
+        a.Fsend = false;
+    }else{
+        a.Fsend = true;
+    }
     for(int i = 0; i < this->M; i++){
         this->abonents.push_back(a);
     }
     int result;
     int streamStat;
     for(int i = 0; i < CYCLES; i++){
-        streamStat = this->genMsg();
-        result = this->lifestep();
+        streamStat = this->genMsg(i);
+        result = this->lifestep(i);
         this->stat.push_back(result);
         this->stat_stream.push_back(streamStat);
         cout<<i<<"; "<<result<<"; "<<streamStat<<endl;
     }
+    double ping = this->ping();
+    cout<<"ping: "<<ping<<endl;
 }
 
 void aloha::initParams(){
@@ -68,7 +83,7 @@ double aloha::random(double min, double max){
     return (double)(rand())/RAND_MAX*(max - min) + min;
 }
 
-int aloha::genMsg(){
+int aloha::genMsg(int step){
     int counter=0;
     double P; 
     for(int i = 0; i < this->abonents.size(); i++){
@@ -76,29 +91,37 @@ int aloha::genMsg(){
         if(P<=CREATE_MSG){
             this->abonents[i].queue++;
             counter++;
+            this->abonents[i].gen.push_back(step);
         }
     }
     return counter;
 }
 
-int aloha::lifestep(){
+int aloha::lifestep(int step){
     int counter = 0;
-    int id;
+    vector <int> id;
     double P;
     for(int i =0; i < this->abonents.size();i++){
         if(this->abonents[i].queue > 0 ){
-            P = random(0,1);
+            if(this->abonents[i].Fsend){
+                this->abonents[i].Fsend=false;
+                P = 0;
+            }else{
+                P = random(0,1);
+            }
             if(P <= this->Psend){
                 counter++;
-                id = i;
+                id.push_back(i);
             }
         }
     }
     if(counter>1){
+        id.clear();
         return 2;
     }
     if(counter==1){
-        this->sending(id);
+        this->sending(id[0], step);
+        id.clear();
         return 1;
     }
     if(counter==0){
@@ -107,6 +130,35 @@ int aloha::lifestep(){
     return -1;
 }
 
-void aloha::sending(int id){
+void aloha::sending(int id, int step){
     this->abonents[id].queue--;
+    if(this->Pmode == 1){
+         this->abonents[id].Fsend = true;
+         this->abonents[id].served.push_back(step);
+    }
+}
+
+double aloha::ping(){
+    double d0 = 0.5;
+    vector <double> d1;
+    vector <int> dP;
+    int elem;
+    for(int i =0; i< this->abonents.size(); i++){
+        for(int j = 0; j<this->abonents[i].served.size();j++){
+            // cout<<this->abonents[i].gen[j]<<" "<<this->abonents[i].served[j]<<endl;
+            dP.push_back(this->abonents[i].served[j]-abonents[i].gen[j] +1);
+        }
+        elem = 0;
+        for(int j = 0; j<dP.size();j++){
+            elem+=dP[j];
+        }
+        d1.push_back(double(elem)/dP.size());
+        dP.clear();
+    }
+    elem = 0;
+    for(int j = 0; j<d1.size();j++){
+        elem+=d1[j];
+        // cout<<d1[j]<<endl;
+    }
+    return d0 + double(elem)/d1.size();
 }

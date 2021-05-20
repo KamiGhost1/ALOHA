@@ -12,6 +12,9 @@ using namespace std;
 class abonent{
 public:
     int queue;
+    bool Fsend;
+    vector <int> gen;
+    vector <int> served;
 };
 
 class aloha{
@@ -20,11 +23,13 @@ public:
     int check_params(int C, char **V);
     void initParams();
     double random(double min, double max);
-    int genMsg();
-    void sending(int id);
-    int lifestep();
+    int genMsg(int step);
+    void sending(int id, int step);
+    int lifestep(int step);
     void opening();
     void mainCycle();
+    double ping();
+    int Pmode;
     int M;
     double Pmsg;
     double Psend;
