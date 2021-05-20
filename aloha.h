@@ -9,6 +9,9 @@ using namespace std;
 #define CYCLES 100
 #define CREATE_MSG 0.1
 #define STEP 0.05
+#define MAX_COUNT_MSG 50
+#define P_MSGS_MORE -1
+// #define USE_100 
 
 class abonent{
 public:
@@ -36,6 +39,8 @@ public:
     int M;
     double Pmsg;
     double Psend;
+    int Cmsg;
+    double PCmsg;
     vector <abonent> abonents;
     vector <int> stat;
     vector <int> stat_stream;
