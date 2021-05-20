@@ -8,6 +8,7 @@
 using namespace std;
 #define CYCLES 100
 #define CREATE_MSG 0.1
+#define STEP 0.05
 
 class abonent{
 public:
@@ -26,9 +27,11 @@ public:
     int genMsg(int step);
     void sending(int id, int step);
     int lifestep(int step);
+    void genAbonents();
     void opening();
     void mainCycle();
     double ping();
+    double intensive();
     int Pmode;
     int M;
     double Pmsg;
@@ -36,5 +39,6 @@ public:
     vector <abonent> abonents;
     vector <int> stat;
     vector <int> stat_stream;
+    int errors;
 };
 
